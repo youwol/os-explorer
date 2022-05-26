@@ -3,6 +3,7 @@ import { map, take } from 'rxjs/operators'
 import { ExplorerState } from './explorer.state'
 import {
     AssetsGateway,
+    AssetsBackend,
     AssetsGateway as Gtw,
     raiseHTTPErrors,
 } from '@youwol/http-clients'
@@ -57,7 +58,7 @@ export interface GroupPermissions {
 
 export interface OverallPermissions {
     group: GroupPermissions
-    item?: AssetsGateway.PermissionsResp
+    item?: AssetsBackend.PermissionsResp
 }
 
 export type ActionConstructor = (
@@ -353,7 +354,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         authorized: true,
         applicable: () => node instanceof ItemNode && node.kind == 'data',
         exe: () => {
-            navigator.clipboard.writeText(node.treeId).then()
+            navigator.clipboard.writeText(node.itemId).then()
         },
     }),
     copyFileUrl: (state: ExplorerState, node: ItemNode) => ({
