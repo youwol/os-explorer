@@ -110,7 +110,7 @@ export const databaseActionsFactory = {
             const parent = cmd.parentNode
             const uid = uuidv4()
             parent.addStatus({ type: 'request-pending', id: uid })
-            RequestsExecutor.deleteFolder(node)
+            RequestsExecutor.trashFolder(node.folderId)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
                     parent.removeStatus({ type: 'request-pending', id: uid })
@@ -144,7 +144,7 @@ export const databaseActionsFactory = {
             const parent = cmd.parentNode
             const uid = uuidv4()
             parent.addStatus({ type: 'request-pending', id: uid })
-            RequestsExecutor.deleteDrive(node)
+            RequestsExecutor.deleteDrive(node.driveId)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
                     parent.removeStatus({ type: 'request-pending', id: uid })
@@ -168,13 +168,13 @@ export const databaseActionsFactory = {
             )
         },
         then: () => {
-            const node = update.removedNodes[0] as AnyItemNode
+            const node = update.removedNodes[0] as ItemNode
             const cmd =
-                update.command as ImmutableTree.RemoveNodeCommand<AnyItemNode>
+                update.command as ImmutableTree.RemoveNodeCommand<ItemNode>
             const parent = cmd.parentNode
             const uid = uuidv4()
             parent.addStatus({ type: 'request-pending', id: uid })
-            RequestsExecutor.deleteItem(node)
+            RequestsExecutor.trashItem(node.itemId)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
                     parent.removeStatus({ type: 'request-pending', id: uid })
