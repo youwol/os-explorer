@@ -1,11 +1,11 @@
 import { ExplorerState, TreeGroup } from './explorer.state'
 import {
     AnyFolderNode,
-    AnyItemNode,
     DriveNode,
     FolderNode,
     FutureFolderNode,
     FutureItemNode,
+    getDeletedChildren,
     getFolderChildren,
     GroupNode,
     ItemNode,
@@ -14,12 +14,13 @@ import {
 
 import { RequestsExecutor } from '@youwol/os-core'
 import { applyUpdate } from './db-actions-factory'
+import { ExplorerBackend } from '@youwol/http-clients'
 
 export function createTreeGroup(
     explorerState: ExplorerState,
     groupName: string,
-    respUserDrives,
-    respDefaultDrive,
+    respUserDrives: ExplorerBackend.QueryDrivesResponse,
+    respDefaultDrive: ExplorerBackend.GetDefaultDriveResponse,
 ) {
     const homeFolderNode = new FolderNode<'home'>({
         ...respDefaultDrive,
@@ -27,7 +28,8 @@ export function createTreeGroup(
         name: respDefaultDrive.homeFolderName,
         folderId: respDefaultDrive.homeFolderId,
         parentFolderId: respDefaultDrive.driveId,
-        children: RequestsExecutor.getFolderChildren(
+        metadata: '',
+        children: getFolderChildren(
             respDefaultDrive.groupId,
             respDefaultDrive.driveId,
             respDefaultDrive.homeFolderId,
@@ -39,7 +41,8 @@ export function createTreeGroup(
         name: respDefaultDrive.downloadFolderName,
         folderId: respDefaultDrive.downloadFolderId,
         parentFolderId: respDefaultDrive.driveId,
-        children: RequestsExecutor.getFolderChildren(
+        metadata: '',
+        children: getFolderChildren(
             respDefaultDrive.groupId,
             respDefaultDrive.driveId,
             respDefaultDrive.downloadFolderId,
@@ -51,7 +54,8 @@ export function createTreeGroup(
         name: 'Trash',
         folderId: 'trash',
         parentFolderId: respDefaultDrive.driveId,
-        children: RequestsExecutor.getDeletedItems(respDefaultDrive.driveId),
+        metadata: '',
+        children: getDeletedChildren(respDefaultDrive.driveId),
     })
     const systemFolderNode = new FolderNode<'system'>({
         ...respDefaultDrive,
@@ -59,7 +63,8 @@ export function createTreeGroup(
         name: 'System',
         folderId: respDefaultDrive.systemFolderId,
         parentFolderId: respDefaultDrive.driveId,
-        children: RequestsExecutor.getFolderChildren(
+        metadata: '',
+        children: getFolderChildren(
             respDefaultDrive.groupId,
             respDefaultDrive.driveId,
             respDefaultDrive.systemFolderId,
@@ -76,8 +81,8 @@ export function createTreeGroup(
             systemFolderNode,
         ],
     })
-    const userDrives = respUserDrives
-        .filter((drive) => drive.id != defaultDrive.id)
+    const userDrives = respUserDrives.drives
+        .filter((drive) => drive.driveId != defaultDrive.id)
         .map((drive) => {
             return new DriveNode({
                 groupId: drive.groupId,
@@ -113,7 +118,7 @@ export function createTreeGroup(
 }
 
 export function processBorrowItem(
-    nodeSelected: AnyItemNode,
+    nodeSelected: ItemNode,
     treeDestination: TreeGroup,
     destination: AnyFolderNode | DriveNode,
 ) {
@@ -129,13 +134,13 @@ export function processBorrowItem(
                 toBeSaved: false,
             })
         },
-        request: RequestsExecutor.borrow(nodeSelected, destination),
+        request: RequestsExecutor.borrow(nodeSelected.itemId, destination.id),
     })
     treeDestination.addChild(destination.id, childNode)
 }
 
 export function processMoveItem(
-    nodeSelected: AnyItemNode,
+    nodeSelected: ItemNode,
     treeOrigin: TreeGroup,
     treeDestination: TreeGroup,
     destination: AnyFolderNode | DriveNode,
@@ -160,7 +165,7 @@ export function processMoveItem(
                 })
             }
         },
-        request: RequestsExecutor.move(nodeSelected, destination),
+        request: RequestsExecutor.move(nodeSelected.itemId, destination.id),
     })
     treeDestination.addChild(destination.id, childNode)
 }
@@ -191,7 +196,7 @@ export function processMoveFolder(
                 toBeSaved: false,
             })
         },
-        request: RequestsExecutor.move(nodeSelected, destination),
+        request: RequestsExecutor.move(nodeSelected.folderId, destination.id),
     })
     treeDestination.addChild(destination.id, childNode)
 }

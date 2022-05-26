@@ -1,10 +1,6 @@
 import { ImmutableTree } from '@youwol/fv-tree'
 
-import {
-    AssetsGateway,
-    raiseHTTPErrors,
-    TreedbBackend,
-} from '@youwol/http-clients'
+import { raiseHTTPErrors, ExplorerBackend } from '@youwol/http-clients'
 import {
     BehaviorSubject,
     combineLatest,
@@ -23,12 +19,7 @@ import {
     tap,
 } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
-import {
-    FutureFolderNode,
-    FutureItemNode,
-    getDeletedChildren,
-    ItemKind,
-} from '.'
+import { FutureFolderNode, FutureItemNode, getDeletedChildren } from '.'
 import {
     ChildApplicationAPI,
     RequestsExecutor,
@@ -38,7 +29,6 @@ import {
 
 import {
     AnyFolderNode,
-    AnyItemNode,
     BrowserNode,
     DownloadNode,
     DriveNode,
@@ -64,7 +54,7 @@ export class TreeGroup extends ImmutableTree.State<BrowserNode> {
     public readonly homeFolderId: string
     public readonly trashFolderId: string
     public readonly groupId: string
-    public readonly drivesId: string
+    public readonly drivesId: string[]
     public readonly defaultDriveId: string
     public readonly downloadFolderId?: string
 
@@ -76,7 +66,7 @@ export class TreeGroup extends ImmutableTree.State<BrowserNode> {
             homeFolderId: string
             trashFolderId: string
             defaultDriveId: string
-            drivesId: string
+            drivesId: string[]
             downloadFolderId?: string
             recentId?: string
         },
@@ -129,18 +119,20 @@ export class ExplorerState {
             const privateGrp = groups.find((grp) => grp.path == 'private')
             return RequestsExecutor.getDrivesChildren(privateGrp.id).pipe(
                 map(({ drives }) => {
-                    return drives.map((drive: AssetsGateway.DriveResponse) => {
-                        return new DriveNode({
-                            groupId: privateGrp.id,
-                            name: drive.name,
-                            driveId: drive.driveId,
-                            children: getFolderChildren(
-                                privateGrp.id,
-                                drive.driveId,
-                                drive.driveId,
-                            ),
-                        })
-                    })
+                    return drives.map(
+                        (drive: ExplorerBackend.GetDriveResponse) => {
+                            return new DriveNode({
+                                groupId: privateGrp.id,
+                                name: drive.name,
+                                driveId: drive.driveId,
+                                children: getFolderChildren(
+                                    privateGrp.id,
+                                    drive.driveId,
+                                    drive.driveId,
+                                ),
+                            })
+                        },
+                    )
                 }),
             )
         }),
@@ -150,7 +142,7 @@ export class ExplorerState {
 
     public itemCut: {
         cutType: 'borrow' | 'move'
-        node: AnyItemNode | AnyFolderNode
+        node: ItemNode | AnyFolderNode
     }
 
     public readonly subscriptions: Subscription[] = []
@@ -162,7 +154,7 @@ export class ExplorerState {
                     const tree = createTreeGroup(
                         this,
                         'You',
-                        respUserDrives,
+                        { drives: respUserDrives },
                         respDefaultDrive,
                     )
                     this.groupsTree[respDefaultDrive.groupId] = tree
@@ -186,16 +178,10 @@ export class ExplorerState {
                             return RequestsExecutor.getItem(event.treeId)
                         }),
                     )
-                    .subscribe((response: AssetsGateway.ItemResponse) => {
+                    .subscribe((response: ExplorerBackend.GetItemResponse) => {
                         const tree = this.groupsTree[response.groupId]
 
-                        const node = new ItemNode({
-                            ...response,
-                            kind: response.kind,
-                            metadata: response['metadata']
-                                ? JSON.parse(response['metadata'])
-                                : {},
-                        })
+                        const node = new ItemNode(response)
                         try {
                             tree.addChild(response.folderId, node)
                         } catch (e) {
@@ -295,13 +281,12 @@ export class ExplorerState {
                     name: 'new folder',
                     folderId: resp.folderId,
                     parentFolderId: parentNode.id,
-                    type: resp.type,
                     metadata: resp.metadata,
                     children: [],
                 })
                 tree.replaceNode(childFolder.id, folderNode)
             },
-            request: RequestsExecutor.createFolder(parentNode, {
+            request: RequestsExecutor.createFolder(parentNode.id, {
                 name: 'new folder',
                 folderId: uuidv4(),
             }),
@@ -316,9 +301,9 @@ export class ExplorerState {
         kind,
     }: {
         parentNode: AnyFolderNode
-        request: Observable<TreedbBackend.GetItemResponse>
+        request: Observable<ExplorerBackend.GetItemResponse>
         pendingName: string
-        kind: ItemKind
+        kind: string
     }) {
         const uid = uuidv4()
         const groupTree = this.groupsTree[parentNode.groupId]
@@ -327,29 +312,22 @@ export class ExplorerState {
             name: pendingName,
             icon: 'fas fa-spinner fa-spin',
             request: request,
-            onResponse: (resp: AssetsGateway.ItemResponse, targetNode) => {
-                const projectNode = new ItemNode({
-                    kind,
-                    treeId: resp.treeId,
-                    groupId: parentNode.groupId,
-                    driveId: parentNode.driveId,
-                    name: resp.name,
-                    assetId: resp.assetId,
-                    rawId: resp.rawId,
-                    borrowed: false,
-                    origin: resp.origin,
-                    metadata: resp['metadata']
-                        ? JSON.parse(resp['metadata'])
-                        : {},
-                })
-                groupTree.replaceNode(targetNode, projectNode)
+            onResponse: (resp: ExplorerBackend.GetItemResponse, targetNode) => {
+                groupTree.replaceNode(
+                    targetNode,
+                    new ItemNode({
+                        ...resp,
+                        origin: resp['origin'],
+                        kind,
+                    }),
+                )
             },
         })
         groupTree.addChild(parentNode.id, node)
     }
 
     rename(
-        node: FolderNode<'regular'> | AnyItemNode,
+        node: FolderNode<'regular'> | ItemNode,
         newName: string,
         save = true,
     ) {
@@ -372,7 +350,7 @@ export class ExplorerState {
         })
     }
 
-    deleteItemOrFolder(node: RegularFolderNode | AnyItemNode) {
+    deleteItemOrFolder(node: RegularFolderNode | ItemNode) {
         this.groupsTree[node.groupId].removeNode(node.id)
         const trashNode = this.groupsTree[node.groupId].getTrashNode()
         if (trashNode) {
@@ -407,12 +385,12 @@ export class ExplorerState {
             })
     }
 
-    cutItem(node: AnyItemNode | FolderNode<'regular'>) {
+    cutItem(node: ItemNode | FolderNode<'regular'>) {
         node.addStatus({ type: 'cut' })
         this.itemCut = { cutType: 'move', node }
     }
 
-    borrowItem(node: AnyItemNode) {
+    borrowItem(node: ItemNode) {
         node.addStatus({ type: 'cut' })
         this.itemCut = { cutType: 'borrow', node }
     }
@@ -485,11 +463,17 @@ export class ExplorerState {
         openFolder && this.openFolder(newFolder)
     }
 
-    uploadAsset(node: AnyItemNode) {
-        RequestsExecutor.uploadLocalAsset(node.assetId, node)
+    uploadAsset(node: ItemNode) {
+        const uid = uuidv4()
+        node.addStatus({ type: 'request-pending', id: uid })
+
+        RequestsExecutor.uploadLocalAsset(node.assetId)
             .pipe(
                 mergeMap(() => this.openFolder$),
                 take(1),
+                tap(() => {
+                    node.removeStatus({ type: 'request-pending', id: uid })
+                }),
             )
             .subscribe(({ folder }) => {
                 if (folder instanceof FolderNode) {
