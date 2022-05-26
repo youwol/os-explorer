@@ -2,24 +2,23 @@ import { DockableTabs } from '@youwol/fv-tabs'
 import { attr$, child$, VirtualDOM } from '@youwol/flux-view'
 import { ImmutableTree } from '@youwol/fv-tree'
 import { filter, map, mergeMap, take } from 'rxjs/operators'
-import { AssetsGateway, TreedbBackend } from '@youwol/http-clients'
+import { AssetsGateway, ExplorerBackend } from '@youwol/http-clients'
 import { BehaviorSubject, Observable } from 'rxjs'
 import { Select } from '@youwol/fv-input'
 
 import {
     AnyFolderNode,
-    AnyItemNode,
+    ItemNode,
     BrowserNode,
     DeletedItemNode,
     ExplorerState,
     FutureItemNode,
     GroupNode,
     installContextMenu,
-    ItemNode,
     RegularFolderNode,
     TreeGroup,
 } from '../..'
-import { Favorite, GetGroupResponse, FavoritesFacade } from '@youwol/os-core'
+import { Favorite, FavoritesFacade } from '@youwol/os-core'
 
 const leftNavClasses = 'fv-bg-background fv-x-lighter h-100 overflow-auto'
 const leftNavStyle = {
@@ -76,7 +75,7 @@ export class MySpaceTab extends SideNavTab {
 export class GroupTab extends SideNavTab {
     constructor(params: {
         state: ExplorerState
-        group: GetGroupResponse
+        group: ExplorerBackend.GetGroupResponse
         selectedTab$: Observable<string>
     }) {
         super({
@@ -190,7 +189,7 @@ export class TreeViewDrive extends ImmutableTree.View<BrowserNode> {
     }) {
         super({
             state: params.treeGroup, //params.explorerState.groupsTree[params.groupId], //new TreeViewState(params),
-            headerView: (_state, node: AnyFolderNode | AnyItemNode) => {
+            headerView: (_state, node: AnyFolderNode | ItemNode) => {
                 if (
                     node instanceof ItemNode ||
                     node instanceof FutureItemNode ||
@@ -306,7 +305,6 @@ export class GroupPinBtn implements VirtualDOM {
     }
     constructor(params: { explorerState: ExplorerState; groupId: string }) {
         Object.assign(this, params)
-        console.log('GroupId', this.groupId)
         const baseClass =
             'fas fa-map-pin p-1 m-1 fv-hover-bg-background-alt rounded fv-pointer'
         this.children = [
@@ -333,11 +331,11 @@ export class FavoriteItemView implements VirtualDOM {
         'rounded fv-pointer px-1 m-1 fv-bg-background-alt fv-hover-xx-lighter'
     public readonly children: VirtualDOM[]
     public readonly explorerState: ExplorerState
-    public readonly favoriteFolder: TreedbBackend.GetFolderResponse
+    public readonly favoriteFolder: ExplorerBackend.GetFolderResponse
     public readonly loadingFolder$ = new BehaviorSubject(false)
     constructor(params: {
         explorerState: ExplorerState
-        favoriteFolder: TreedbBackend.GetFolderResponse
+        favoriteFolder: ExplorerBackend.GetFolderResponse
     }) {
         Object.assign(this, params)
 
@@ -375,11 +373,11 @@ export class FavoritesView implements VirtualDOM {
     }
     public readonly children
     public readonly explorerState: ExplorerState
-    public readonly favoritesFolder: TreedbBackend.GetFolderResponse[]
+    public readonly favoritesFolder: ExplorerBackend.GetFolderResponse[]
 
     constructor(params: {
         explorerState: ExplorerState
-        favoritesFolder: TreedbBackend.GetFolderResponse[]
+        favoritesFolder: ExplorerBackend.GetFolderResponse[]
     }) {
         Object.assign(this, params)
         this.children = this.favoritesFolder.map((folder) => {
