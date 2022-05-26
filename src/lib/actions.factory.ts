@@ -10,9 +10,7 @@ import * as cdnClient from '@youwol/cdn-client'
 
 import {
     AnyFolderNode,
-    AnyItemNode,
     BrowserNode,
-    DataNode,
     DeletedNode,
     DriveNode,
     instanceOfStandardFolder,
@@ -178,7 +176,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         authorized: true,
         applicable: () => node instanceof ItemNode && node.kind == 'data',
         exe: () => {
-            const nodeData = node as DataNode
+            const nodeData = node as ItemNode
             const anchor = document.createElement('a')
             anchor.setAttribute(
                 'href',
@@ -204,7 +202,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
             )
         },
         exe: () => {
-            state.uploadAsset(node as AnyItemNode)
+            state.uploadAsset(node as ItemNode)
         },
     }),
     deleteFolder: (
@@ -290,7 +288,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
             return instanceOfStandardFolder(node)
         },
         exe: () => {
-            state.cutItem(node as AnyItemNode | RegularFolderNode)
+            state.cutItem(node as ItemNode | RegularFolderNode)
         },
     }),
     borrowItem: (
@@ -305,7 +303,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         authorized: hasItemSharePermission(node, permissions),
         applicable: () => node instanceof ItemNode,
         exe: () => {
-            state.borrowItem(node as AnyItemNode)
+            state.borrowItem(node as ItemNode)
         },
     }),
     deleteItem: (
@@ -322,7 +320,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
             return node instanceof ItemNode
         },
         exe: () => {
-            state.deleteItemOrFolder(node as AnyItemNode)
+            state.deleteItemOrFolder(node as ItemNode)
         },
     }),
     refresh: (state: ExplorerState, node: BrowserNode) => ({
@@ -336,7 +334,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
             state.refresh(node as AnyFolderNode)
         },
     }),
-    copyFileId: (state: ExplorerState, node: DataNode) => ({
+    copyFileId: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
         icon: 'fas fa-clipboard',
         name: "copy file's id",
@@ -347,7 +345,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
             navigator.clipboard.writeText(node.rawId).then()
         },
     }),
-    copyExplorerId: (state: ExplorerState, node: DataNode) => ({
+    copyExplorerId: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
         icon: 'fas fa-clipboard',
         name: "copy explorer's id",
@@ -358,7 +356,7 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
             navigator.clipboard.writeText(node.treeId).then()
         },
     }),
-    copyFileUrl: (state: ExplorerState, node: DataNode) => ({
+    copyFileUrl: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
         icon: 'fas fa-clipboard',
         name: "copy file's url",
@@ -502,16 +500,13 @@ export function getActions$(
                     section: 'Open',
                     authorized: true,
                     applicable: () => {
-                        return evaluateMatch(
-                            node as AnyItemNode,
-                            parametrization,
-                        )
+                        return evaluateMatch(node as ItemNode, parametrization)
                     },
                     exe: () => {
                         state.launchApplication({
                             cdnPackage: appInfo.cdnPackage,
                             parameters: evaluateParameters(
-                                node as AnyItemNode,
+                                node as ItemNode,
                                 parametrization,
                             ),
                         })
