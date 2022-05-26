@@ -1,39 +1,36 @@
 import { ImmutableTree } from '@youwol/fv-tree'
 import { BehaviorSubject, Observable, Subject } from 'rxjs'
 import { map, tap } from 'rxjs/operators'
-import {
-    AssetsGateway,
-    Json,
-    RequestEvent,
-    TreedbBackend,
-} from '@youwol/http-clients'
+import { RequestEvent, ExplorerBackend } from '@youwol/http-clients'
 import { v4 as uuidv4 } from 'uuid'
-import * as Core from '@youwol/os-core'
 import { RequestsExecutor } from '@youwol/os-core'
 type NodeEventType = 'item-added'
 
-export class BrowserNode
-    extends ImmutableTree.Node
-    implements Core.ExplorerNode
-{
-    name: string
-    explorerId: string
-    events$ = new Subject<{ type: NodeEventType }>()
-    status$ = new BehaviorSubject<Array<{ type: string; id: string }>>([])
-    icon: string
+export interface Origin {
+    local: boolean
+    remote: boolean
+}
+type Children = BrowserNode[] | Observable<BrowserNode[]>
 
-    origin?: AssetsGateway.Origin
+export class BrowserNode extends ImmutableTree.Node {
+    public readonly name: string
+    public readonly events$ = new Subject<{ type: NodeEventType }>()
+    public readonly status$ = new BehaviorSubject<
+        Array<{ type: string; id: string }>
+    >([])
+    public readonly icon: string
+
+    public readonly origin?: Origin
 
     constructor(params: {
         id: string
         name: string
         icon?: string
-        children?: Array<BrowserNode> | Observable<Array<BrowserNode>>
-        origin?: AssetsGateway.Origin
+        children?: Children
+        origin?: Origin
     }) {
         super(params)
         Object.assign(this, params)
-        this.explorerId = params.id
     }
 
     addStatus({ type, id }: { type: string; id?: string }) {
@@ -85,8 +82,8 @@ export class GroupNode extends BrowserNode {
         users: 'fas fa-users',
     }
 
-    groupId: string
-    kind: GroupKind
+    public readonly groupId: string
+    public readonly kind: GroupKind
 
     constructor(params: {
         id: string
@@ -100,16 +97,20 @@ export class GroupNode extends BrowserNode {
     }
 }
 
-export class DriveNode extends BrowserNode implements Core.DriveNode {
-    groupId: string
-    driveId: string
-    icon = 'fas fa-hdd'
+export class DriveNode
+    extends BrowserNode
+    implements ExplorerBackend.GetDriveResponse
+{
+    public readonly groupId: string
+    public readonly driveId: string
+    public readonly metadata: string
+    public readonly icon = 'fas fa-hdd'
 
     constructor(params: {
         groupId: string
         driveId: string
         name: string
-        children?: Array<BrowserNode> | Observable<Array<BrowserNode>>
+        children?: Children
     }) {
         super({ ...params, id: params.driveId })
         Object.assign(this, params)
@@ -118,16 +119,9 @@ export class DriveNode extends BrowserNode implements Core.DriveNode {
 
 type FolderKind = 'regular' | 'home' | 'download' | 'trash' | 'system'
 
-export function isInstanceOfFolderNode(node: unknown): node is AnyFolderNode {
-    return (
-        (node as AnyFolderNode).parentFolderId != undefined &&
-        (node as AnyFolderNode).folderId != undefined
-    )
-}
-
 export class FolderNode<T extends FolderKind>
     extends BrowserNode
-    implements Core.FolderNode
+    implements ExplorerBackend.GetFolderResponse
 {
     static iconsFactory: Record<FolderKind, string> = {
         regular: 'fas fa-folder',
@@ -137,51 +131,30 @@ export class FolderNode<T extends FolderKind>
         system: 'fas fa-cogs',
     }
 
-    folderId: string
-    groupId: string
-    driveId: string
-    parentFolderId: string
-    type: string
-    metadata: Json
-    kind: T
+    public readonly folderId: string
+    public readonly groupId: string
+    public readonly driveId: string
+    public readonly parentFolderId: string
+    public readonly metadata: string
+    public readonly kind: T
 
-    constructor(params: {
-        folderId: string
-        driveId: string
-        groupId: string
-        parentFolderId: string
-        name: string
-        type: string
-        metadata: Json
-        children?: Array<BrowserNode> | Observable<Array<BrowserNode>>
-        kind: T
-        origin?: AssetsGateway.Origin
-    }) {
+    constructor(
+        params: ExplorerBackend.GetFolderResponse & {
+            origin?: Origin
+            children: Children
+        },
+    ) {
         super({
             ...params,
             id: params.folderId,
             icon: FolderNode.iconsFactory[params.kind],
-        })
-        Object.assign(this, params)
-    }
-
-    static fromTreedbResponse(response: TreedbBackend.GetFolderResponse) {
-        return new FolderNode({
-            folderId: response.folderId,
-            kind: 'regular',
-            groupId: response.groupId,
-            name: response.name,
-            type: response.type,
-            metadata: JSON.parse(response.metadata),
-            driveId: response.driveId,
-            parentFolderId: response.parentFolderId,
-            origin: response['origin'],
             children: getFolderChildren(
-                response.groupId,
-                response.driveId,
-                response.folderId,
+                params.groupId,
+                params.driveId,
+                params.folderId,
             ),
         })
+        Object.assign(this, params)
     }
 }
 
@@ -194,10 +167,18 @@ export function getFolderChildren(
         map(({ items, folders }) => {
             return [
                 ...folders.map((folder) => {
-                    return FolderNode.fromTreedbResponse(folder)
+                    return new FolderNode({
+                        ...folder,
+                        kind: 'regular',
+                        children: getFolderChildren(
+                            groupId,
+                            driveId,
+                            folder.folderId,
+                        ),
+                    })
                 }),
                 ...items.map((item) => {
-                    return ItemNode.fromTreedbResponse(item)
+                    return new ItemNode(item)
                 }),
                 ...(driveId == folderId
                     ? [
@@ -208,7 +189,6 @@ export function getFolderChildren(
                               kind: 'trash',
                               name: 'Trash',
                               folderId: 'trash',
-                              type: '',
                               metadata: '',
                               children: getDeletedChildren(driveId),
                           }),
@@ -237,7 +217,7 @@ export function getDeletedChildren(driveId: string) {
                             id: item.itemId,
                             name: item.name,
                             driveId,
-                            type: item.type,
+                            kind: item.kind,
                         }),
                 ),
             ]
@@ -253,81 +233,48 @@ export type SystemNode = FolderNode<'system'>
 export type AnyFolderNode = FolderNode<FolderKind>
 
 export function instanceOfTrashFolder(folder: BrowserNode) {
-    return isInstanceOfFolderNode(folder) && folder.kind == 'trash'
+    return (
+        ExplorerBackend.isInstanceOfFolderResponse(folder) &&
+        folder.kind == 'trash'
+    )
 }
 
 export function instanceOfStandardFolder(folder: BrowserNode) {
     return (
-        isInstanceOfFolderNode(folder) &&
+        ExplorerBackend.isInstanceOfFolderResponse(folder) &&
         (folder.kind == 'regular' ||
             folder.kind == 'home' ||
             folder.kind == 'download')
     )
 }
 
-export type ItemKind = string
-
-export function isInstanceOfItemNode(node: unknown): node is AnyItemNode {
-    return (
-        (node as AnyItemNode).assetId != undefined &&
-        (node as AnyItemNode).rawId != undefined &&
-        (node as AnyItemNode).treeId != undefined
-    )
-}
-
-export class ItemNode<T extends ItemKind>
+export class ItemNode
     extends BrowserNode
-    implements Core.ItemNode
+    implements ExplorerBackend.GetItemResponse
 {
-    static iconsFactory: Record<ItemKind, string> = {
+    static iconsFactory: { [key: string]: string } = {
         data: 'fas fa-database',
         package: 'fas fa-box',
     }
-    id: string
-    name: string
-    groupId: string
-    driveId: string
-    rawId: string
-    assetId: string
-    treeId: string
-    borrowed: boolean
-    kind: T
-    icon: string
-    metadata: Json
+    public readonly id: string
+    public readonly name: string
+    public readonly groupId: string
+    public readonly driveId: string
+    public readonly rawId: string
+    public readonly assetId: string
+    public readonly itemId: string
+    public readonly folderId: string
+    public readonly borrowed: boolean
+    public readonly kind: string
+    public readonly icon: string
+    public readonly metadata: string
 
-    constructor(params: {
-        name: string
-        groupId: string
-        driveId: string
-        assetId: string
-        rawId: string
-        treeId: string
-        borrowed: boolean
-        metadata: Json
-        kind: T
-        origin?: AssetsGateway.Origin
-    }) {
-        super({ ...params, children: undefined, id: params.treeId })
-
+    constructor(params: ExplorerBackend.GetItemResponse & { origin?: Origin }) {
+        super({ ...params, children: undefined, id: params.itemId })
         Object.assign(this, params)
         this.icon = ItemNode.iconsFactory[this.kind]
     }
-
-    static fromTreedbResponse(response: TreedbBackend.GetItemResponse) {
-        return new ItemNode({
-            ...response,
-            assetId: JSON.parse(response.metadata).assetId,
-            borrowed: JSON.parse(response.metadata).borrowed,
-            rawId: JSON.parse(response.metadata).relatedId,
-            treeId: response.itemId,
-            kind: response.type,
-            metadata: JSON.parse(response.metadata),
-        })
-    }
 }
-
-export type DataNode = ItemNode<'data'>
-export type AnyItemNode = ItemNode<ItemKind>
 
 export class FutureNode extends BrowserNode {
     onResponse: (unknown, BrowserNode) => void
@@ -348,8 +295,8 @@ export class FutureItemNode extends FutureNode {}
 export class FutureFolderNode extends FutureNode {}
 
 export class DeletedNode extends BrowserNode {
-    name: string
-    driveId: string
+    public readonly name: string
+    public readonly driveId: string
 
     constructor({ id, name, driveId }) {
         super({ id, name, children: undefined })
@@ -359,8 +306,8 @@ export class DeletedNode extends BrowserNode {
 }
 
 export class DeletedFolderNode extends DeletedNode {
-    name: string
-    driveId: string
+    public readonly name: string
+    public readonly driveId: string
 
     constructor({
         id,
@@ -375,23 +322,23 @@ export class DeletedFolderNode extends DeletedNode {
     }
 }
 export class DeletedItemNode extends DeletedNode {
-    name: string
-    driveId: string
-    type: string
+    public readonly name: string
+    public readonly driveId: string
+    public readonly kind: string
 
     constructor({
         id,
         driveId,
         name,
-        type,
+        kind,
     }: {
         id: string
         driveId: string
         name: string
-        type: string
+        kind: string
     }) {
         super({ id, name, driveId })
-        this.type = type
+        this.kind = kind
     }
 }
 
@@ -414,3 +361,9 @@ export class ProgressNode extends BrowserNode {
         this.direction = direction
     }
 }
+
+export type AnyItemNode =
+    | ItemNode
+    | FutureItemNode
+    | DeletedItemNode
+    | ProgressNode
