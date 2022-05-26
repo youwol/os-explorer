@@ -79,7 +79,7 @@ function fetchGroupPermissions$(_groupId: string) {
 /**
  * fetch the permissions of the current user regarding an asset
  */
-function fetchItemPermissions$(node: AnyItemNode) {
+function fetchItemPermissions$(node: ItemNode) {
     if (node.origin && !node.origin.local) {
         return of({
             write: false,
