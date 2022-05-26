@@ -379,10 +379,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         section: 'Disposition',
         authorized: true,
         applicable: () => {
-            const favorites = FavoritesFacade.latest.folders$
+            const favorites = FavoritesFacade.getFolders$().getValue()
             return (
                 node instanceof FolderNode &&
-                favorites.find((f) => f.id == node.id) == undefined
+                favorites.find((f) => f.folderId == node.id) == undefined
             )
         },
         exe: () => {
@@ -396,10 +396,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         section: 'Disposition',
         authorized: true,
         applicable: () => {
-            const favorites = FavoritesFacade.latest.folders$
+            const favorites = FavoritesFacade.getFolders$().getValue()
             return (
                 node instanceof FolderNode &&
-                favorites.find((f) => f.id == node.id) != undefined
+                favorites.find((f) => f.folderId == node.id) != undefined
             )
         },
         exe: () => {
@@ -413,10 +413,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         section: 'Disposition',
         authorized: true,
         applicable: () => {
-            const favorites = FavoritesFacade.latest.items$
+            const favorites = FavoritesFacade.getItems$().getValue()
             return (
                 node instanceof ItemNode &&
-                favorites.find((i) => i.id == node.id) == undefined
+                favorites.find((i) => i.itemId == node.id) == undefined
             )
         },
         exe: () => {
@@ -430,10 +430,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         section: 'Disposition',
         authorized: true,
         applicable: () => {
-            const favorites = FavoritesFacade.latest.items$
+            const favorites = FavoritesFacade.getItems$().getValue()
             return (
                 node instanceof ItemNode &&
-                favorites.find((i) => i.id == node.id) != undefined
+                favorites.find((i) => i.itemId == node.id) != undefined
             )
         },
         exe: () => {
