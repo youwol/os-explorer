@@ -5,11 +5,11 @@ import { filter, map } from 'rxjs/operators'
 
 import { ExplorerState } from '../../explorer.state'
 import {
-    AnyItemNode,
     BrowserNode,
+    DeletedItemNode,
+    FutureItemNode,
     ItemNode,
     ProgressNode,
-    RegularFolderNode,
 } from '../../nodes'
 import { installContextMenu } from '../../context-menu/context-menu'
 import {
@@ -18,6 +18,7 @@ import {
     tryOpenWithDefault$,
     defaultOpeningApp$,
 } from '@youwol/os-core'
+import { AssetsGateway, ExplorerBackend } from '@youwol/http-clients'
 
 export class ProgressItemView {
     static ClassSelector = 'progress-item-view'
@@ -74,6 +75,8 @@ export class ProgressItemView {
     }
 }
 
+type ItemViewNode = ItemNode | FutureItemNode | DeletedItemNode
+
 export class ItemView {
     static ClassSelector = 'item-view'
     public readonly baseClasses = `${ItemView.ClassSelector} d-flex align-items-center p-1 rounded fv-hover-bg-background-alt fv-pointer`
@@ -103,8 +106,8 @@ export class ItemView {
         ev.stopPropagation()
     }
     public readonly state: ExplorerState
-    public readonly item: RegularFolderNode | AnyItemNode
-
+    public readonly item: ItemViewNode
+    public readonly assetsClient = new AssetsGateway.Client().assets
     public readonly oncontextmenu = (ev) => {
         ev.stopPropagation()
     }
@@ -123,9 +126,14 @@ export class ItemView {
             .subscribe(() => this.contextMenuSelection$.next(false))
     }
 
-    constructor(params: { state: ExplorerState; item: BrowserNode }) {
+    constructor(params: { state: ExplorerState; item: ItemViewNode }) {
         Object.assign(this, params)
-        this.defaultOpeningApp$ = defaultOpeningApp$(this.item as any)
+        this.defaultOpeningApp$ = ExplorerBackend.isInstanceOfItemResponse(
+            this.item,
+        )
+            ? defaultOpeningApp$(this.item)
+            : undefined
+
         this.class = attr$(
             combineLatest([
                 this.state.selectedItem$,
@@ -219,7 +227,7 @@ export class ItemView {
             onclick: (ev) => ev.stopPropagation(),
             onkeydown: (ev) => {
                 if (ev.key === 'Enter') {
-                    this.state.rename(this.item, ev.target.value)
+                    this.state.rename(this.item as ItemNode, ev.target.value)
                 }
             },
         }

@@ -3,6 +3,7 @@ import { Observable } from 'rxjs'
 import { map, shareReplay, switchMap, take, tap } from 'rxjs/operators'
 import { ExplorerState, TreeGroup } from '../../explorer.state'
 import {
+    AnyItemNode,
     BrowserNode,
     DeletedItemNode,
     FutureItemNode,
@@ -59,7 +60,7 @@ export class FolderContentView implements VirtualDOM {
         )
 
         this.children = [
-            child$(this.items$, (items: BrowserNode[]) => {
+            child$(this.items$, (items: AnyItemNode[]) => {
                 return new DetailsContentView({
                     state: this.state,
                     items,

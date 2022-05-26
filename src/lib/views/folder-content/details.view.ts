@@ -1,15 +1,8 @@
 import { VirtualDOM } from '@youwol/flux-view'
 import { ExplorerState } from '../../explorer.state'
-import {
-    AnyFolderNode,
-    BrowserNode,
-    DriveNode,
-    FolderNode,
-    ProgressNode,
-} from '../../nodes'
+import { AnyFolderNode, AnyItemNode, ItemNode, ProgressNode } from '../../nodes'
 import { ItemView, ProgressItemView } from './item.view'
 import { installContextMenu } from '../../context-menu/context-menu'
-import { ChildApplicationAPI, IPlatformHandler } from '@youwol/os-core'
 
 export class DetailsContentView {
     public readonly class =
@@ -18,7 +11,7 @@ export class DetailsContentView {
     public readonly children: VirtualDOM[]
 
     public readonly folder: AnyFolderNode
-    public readonly items: BrowserNode[]
+    public readonly items: AnyItemNode[]
 
     public readonly state: ExplorerState
     public readonly onclick = () => this.state.selectedItem$.next(undefined)
@@ -35,7 +28,7 @@ export class DetailsContentView {
 
     constructor(params: {
         state: ExplorerState
-        items: BrowserNode[]
+        items: AnyItemNode[]
         folder: AnyFolderNode
     }) {
         Object.assign(this, params)
@@ -43,45 +36,11 @@ export class DetailsContentView {
         this.children = [
             {
                 class: 'flex-grow-1 overflow-auto',
-                children: this.items.map((item: BrowserNode) =>
+                children: this.items.map((item: ItemNode) =>
                     item instanceof ProgressNode
                         ? new ProgressItemView({ state: this.state, item })
-                        : new RowView({ state: this.state, item }),
+                        : new ItemView({ state: this.state, item }),
                 ),
-            },
-        ]
-    }
-}
-
-export class RowView implements VirtualDOM {
-    static ClassSelector = 'row-view'
-    public readonly class = `${RowView.ClassSelector} justify-content-between rounded`
-    public readonly children: VirtualDOM[]
-
-    public readonly state: ExplorerState
-    public readonly item: BrowserNode
-    public readonly platformHandler: IPlatformHandler
-
-    public readonly ondblclick = (ev) => {
-        ev.stopPropagation()
-        if (this.item instanceof FolderNode || this.item instanceof DriveNode) {
-            this.state.openFolder(this.item)
-        }
-    }
-
-    constructor(params: { state: ExplorerState; item: BrowserNode }) {
-        Object.assign(this, params)
-
-        this.platformHandler = ChildApplicationAPI.getOsInstance()
-
-        this.children = [
-            {
-                children: [
-                    new ItemView({
-                        state: this.state,
-                        item: this.item,
-                    }),
-                ],
             },
         ]
     }
