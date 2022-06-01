@@ -1,6 +1,6 @@
 import { attr$, child$, Stream$, VirtualDOM } from '@youwol/flux-view'
 
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs'
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 
 import { ExplorerState } from '../../explorer.state'
@@ -132,7 +132,7 @@ export class ItemView {
             this.item,
         )
             ? defaultOpeningApp$(this.item)
-            : undefined
+            : of(undefined)
 
         this.class = attr$(
             combineLatest([
@@ -171,7 +171,7 @@ export class ItemView {
                             appData.appInfo.graphics &&
                             appData.appInfo.graphics.fileIcon
                             ? appData.appInfo.graphics.fileIcon
-                            : { class: `mr-1 fas ${this.item.icon}` }
+                            : { class: `mr-1 fas fa-file` }
                     }),
                     child$(this.item.status$, (statusList) =>
                         statusList.find((s) => s.type == 'renaming')
