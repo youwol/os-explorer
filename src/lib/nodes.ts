@@ -277,14 +277,14 @@ export class ItemNode
 }
 
 export class FutureNode extends BrowserNode {
-    onResponse: (unknown, BrowserNode) => void
-    request: Observable<unknown>
+    public readonly onResponse: (unknown, BrowserNode) => void
+    public readonly response$: Observable<unknown>
 
     constructor(params: {
         icon: string
         name: string
         onResponse: (unknown, BrowserNode) => void
-        request: Observable<unknown>
+        response$: Observable<unknown>
     }) {
         super({ ...params, id: uuidv4() })
         Object.assign(this, params)

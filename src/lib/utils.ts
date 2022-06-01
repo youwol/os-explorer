@@ -134,7 +134,7 @@ export function processBorrowItem(
                 toBeSaved: false,
             })
         },
-        request: RequestsExecutor.borrow(nodeSelected.itemId, destination.id),
+        response$: RequestsExecutor.borrow(nodeSelected.itemId, destination.id),
     })
     treeDestination.addChild(destination.id, childNode)
 }
@@ -165,7 +165,7 @@ export function processMoveItem(
                 })
             }
         },
-        request: RequestsExecutor.move(nodeSelected.itemId, destination.id),
+        response$: RequestsExecutor.move(nodeSelected.itemId, destination.id),
     })
     treeDestination.addChild(destination.id, childNode)
 }
@@ -196,7 +196,7 @@ export function processMoveFolder(
                 toBeSaved: false,
             })
         },
-        request: RequestsExecutor.move(nodeSelected.folderId, destination.id),
+        response$: RequestsExecutor.move(nodeSelected.folderId, destination.id),
     })
     treeDestination.addChild(destination.id, childNode)
 }

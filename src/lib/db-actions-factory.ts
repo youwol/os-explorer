@@ -206,7 +206,7 @@ export const databaseActionsFactory = {
             const uid = uuidv4()
             node.addStatus({ type: 'request-pending', id: uid })
             parentNode.addStatus({ type: 'request-pending', id: uid })
-            node.request.pipe(delay(debugDelay)).subscribe((resp) => {
+            node.response$.pipe(delay(debugDelay)).subscribe((resp) => {
                 parentNode.removeStatus({ type: 'request-pending', id: uid })
                 node.removeStatus({ type: 'request-pending', id: uid })
                 node.onResponse(resp, node)
