@@ -357,6 +357,17 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
             navigator.clipboard.writeText(node.itemId).then()
         },
     }),
+    copyAssetId: (state: ExplorerState, node: ItemNode) => ({
+        sourceEventNode: node,
+        icon: 'fas fa-clipboard',
+        name: "copy asset's id",
+        section: 'Info',
+        authorized: true,
+        applicable: () => node instanceof ItemNode,
+        exe: () => {
+            navigator.clipboard.writeText(node.assetId).then()
+        },
+    }),
     copyFileUrl: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
         icon: 'fas fa-clipboard',
@@ -497,7 +508,9 @@ export function getActions$(
                 ({ appInfo, parametrization }) => ({
                     sourceEventNode: node,
                     icon: 'fas fa-folder-open',
-                    name: `${appInfo.displayName} (${parametrization.name})`,
+                    name: `${appInfo.displayName} ${
+                        parametrization.name || ''
+                    }`,
                     section: 'Open',
                     authorized: true,
                     applicable: () => {
