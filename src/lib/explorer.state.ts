@@ -1,6 +1,10 @@
 import { ImmutableTree } from '@youwol/fv-tree'
 
-import { raiseHTTPErrors, ExplorerBackend } from '@youwol/http-clients'
+import {
+    raiseHTTPErrors,
+    ExplorerBackend,
+    RequestEvent,
+} from '@youwol/http-clients'
 import {
     BehaviorSubject,
     combineLatest,
@@ -19,7 +23,12 @@ import {
     tap,
 } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid'
-import { FutureFolderNode, FutureItemNode, getDeletedChildren } from '.'
+import {
+    FutureFolderNode,
+    FutureItemNode,
+    getDeletedChildren,
+    ProgressNode,
+} from '.'
 import {
     ChildApplicationAPI,
     RequestsExecutor,
@@ -296,33 +305,50 @@ export class ExplorerState {
 
     newAsset<T>({
         parentNode,
-        request,
+        response$,
+        progress$,
         pendingName,
-        kind,
     }: {
         parentNode: AnyFolderNode
-        request: Observable<ExplorerBackend.GetItemResponse>
+        response$: Observable<ExplorerBackend.GetItemResponse>
+        progress$?: Observable<RequestEvent>
         pendingName: string
-        kind: string
     }) {
         const uid = uuidv4()
         const groupTree = this.groupsTree[parentNode.groupId]
         parentNode.addStatus({ type: 'request-pending', id: uid })
-        const node = new FutureItemNode({
-            name: pendingName,
-            icon: 'fas fa-spinner fa-spin',
-            request: request,
-            onResponse: (resp: ExplorerBackend.GetItemResponse, targetNode) => {
-                groupTree.replaceNode(
-                    targetNode,
-                    new ItemNode({
-                        ...resp,
-                        origin: resp['origin'],
-                        kind,
-                    }),
-                )
-            },
-        })
+
+        const onResponse = (
+            response: ExplorerBackend.GetItemResponse,
+            targetNode: BrowserNode,
+        ) => {
+            groupTree.replaceNode(
+                targetNode,
+                new ItemNode({
+                    ...response,
+                    borrowed: false,
+                }),
+            )
+            parentNode.removeStatus({
+                type: 'request-pending',
+                id: uid,
+            })
+        }
+        const node = progress$
+            ? new ProgressNode({
+                  name: pendingName,
+                  id: uuidv4(),
+                  progress$: progress$,
+                  response$,
+                  onResponse,
+                  direction: 'download',
+              })
+            : new FutureItemNode({
+                  name: pendingName,
+                  icon: 'fas fa-spinner fa-spin',
+                  response$,
+                  onResponse,
+              })
         groupTree.addChild(parentNode.id, node)
     }
 

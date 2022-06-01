@@ -344,21 +344,20 @@ export class DeletedItemNode extends DeletedNode {
 
 export class ProgressNode extends BrowserNode {
     public readonly progress$: Observable<RequestEvent>
+    public readonly response$: Observable<unknown>
+    public readonly onResponse: (unknown, BrowserNode) => void
     public readonly direction: 'upload' | 'download'
-    constructor({
-        id,
-        name,
-        progress$,
-        direction,
-    }: {
+    constructor(params: {
         id: string
         name: string
         progress$: Observable<RequestEvent>
+        response$: Observable<unknown>
+        onResponse: (unknown, BrowserNode) => void
         direction: 'upload' | 'download'
     }) {
-        super({ id, name })
-        this.progress$ = progress$
-        this.direction = direction
+        super({ id: params.id, name: params.name })
+        Object.assign(this, params)
+        this.response$.subscribe((response) => this.onResponse(response, this))
     }
 }
 
