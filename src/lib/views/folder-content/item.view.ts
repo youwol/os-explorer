@@ -49,7 +49,7 @@ export class ProgressItemView {
                 ],
             },
             {
-                class: 'w-100',
+                class: 'w-100 border rounded',
                 children: [
                     {
                         style: attr$(

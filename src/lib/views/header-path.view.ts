@@ -18,7 +18,7 @@ export class HeaderPathView implements VirtualDOM {
 
         this.children = [
             {
-                class: 'd-flex flex-grow-1 justify-content-center overflow-auto mr-1',
+                class: 'd-flex flex-grow-1 justify-content-center overflow-auto mr-1 align-items-center',
                 style: {
                     'white-space': 'nowrap',
                     'overflow-x': 'auto',
