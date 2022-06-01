@@ -62,7 +62,9 @@ export class HeaderPathView implements VirtualDOM {
 }
 
 export class LoadingSpinnerView implements VirtualDOM {
-    public readonly class = `${LoadingSpinnerView} h-100 d-flex flex-column justify-content-center px-2`
+    static ClassSelector = 'loading-spinner-view'
+
+    public readonly class = `${LoadingSpinnerView.ClassSelector} h-100 d-flex flex-column justify-content-center px-2`
     public readonly children: VirtualDOM[]
 
     public readonly isLoading$: Observable<{ type: string; id: string }[]>
