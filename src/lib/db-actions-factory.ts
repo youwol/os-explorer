@@ -76,7 +76,7 @@ export const databaseActionsFactory = {
             const node = update.addedNodes[0] as AnyItemNode
             const uid = uuidv4()
             node.addStatus({ type: 'request-pending', id: uid })
-            RequestsExecutor.renameAsset(node.id, node.name)
+            RequestsExecutor.renameItem(node.id, node.name)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
                     node.removeStatus({ type: 'request-pending', id: uid })
