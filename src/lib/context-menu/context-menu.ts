@@ -146,15 +146,15 @@ export class ContextItemView implements VirtualDOM {
     constructor(params: { action: Action }) {
         Object.assign(this, params)
         const baseClass = `d-flex align-items-center row`
-        this.class = this.action.authorized
+        this.class = this.action.enabled()
             ? `${baseClass}  fv-hover-bg-secondary fv-hover-x-lighter  fv-pointer`
             : `${baseClass} fv-text-disabled`
         this.children = [
             {
-                class: `${this.action.icon} col-2 text-center px-1`,
+                class: `col-3 text-center px-1`,
+                children: [this.action.icon],
             },
-            { class: `col-6`, innerText: this.action.name },
-            { class: `col-4`, innerText: 'shortcut' },
+            { class: `col-9`, innerText: this.action.name },
         ]
     }
 }
