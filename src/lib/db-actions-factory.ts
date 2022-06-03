@@ -22,6 +22,33 @@ function isToProcess({ update, targetCmd }) {
     return !(update.command.metadata && !update.command.metadata.toBeSaved)
 }
 
+function onAchieved(update: ImmutableTree.Updates<BrowserNode>) {
+    update.command.metadata &&
+        update.command.metadata.onAchieved &&
+        update.command.metadata.onAchieved()
+}
+
+function onRenamed(
+    node: BrowserNode,
+    update: ImmutableTree.Updates<BrowserNode>,
+    uid: string,
+) {
+    node.removeStatus({ type: 'request-pending', id: uid })
+    FavoritesFacade.refresh(node.id)
+    onAchieved(update)
+}
+
+function onDeleted(
+    parent: BrowserNode,
+    node: BrowserNode,
+    update: ImmutableTree.Updates<BrowserNode>,
+    uid: string,
+) {
+    parent.removeStatus({ type: 'request-pending', id: uid })
+    FavoritesFacade.remove(node.id)
+    onAchieved(update)
+}
+
 export const databaseActionsFactory = {
     renameFolder: (update: ImmutableTree.Updates<BrowserNode>) => ({
         when: () => {
@@ -51,8 +78,7 @@ export const databaseActionsFactory = {
             RequestsExecutor.renameFolder(node.id, node.name)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
-                    node.removeStatus({ type: 'request-pending', id: uid })
-                    FavoritesFacade.refresh(node.id)
+                    onRenamed(node, update, uid)
                 })
         },
     }),
@@ -79,8 +105,7 @@ export const databaseActionsFactory = {
             RequestsExecutor.renameItem(node.id, node.name)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
-                    node.removeStatus({ type: 'request-pending', id: uid })
-                    FavoritesFacade.refresh(node.id)
+                    onRenamed(node, update, uid)
                 })
         },
     }),
@@ -113,8 +138,7 @@ export const databaseActionsFactory = {
             RequestsExecutor.trashFolder(node.folderId)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
-                    parent.removeStatus({ type: 'request-pending', id: uid })
-                    FavoritesFacade.remove(node.id)
+                    onDeleted(parent, node, update, uid)
                 })
         },
     }),
@@ -148,6 +172,7 @@ export const databaseActionsFactory = {
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
                     parent.removeStatus({ type: 'request-pending', id: uid })
+                    onAchieved(update)
                 })
         },
     }),
@@ -177,8 +202,7 @@ export const databaseActionsFactory = {
             RequestsExecutor.trashItem(node.itemId)
                 .pipe(delay(debugDelay))
                 .subscribe(() => {
-                    parent.removeStatus({ type: 'request-pending', id: uid })
-                    FavoritesFacade.remove(node.id)
+                    onDeleted(parent, node, update, uid)
                 })
         },
     }),
@@ -210,6 +234,7 @@ export const databaseActionsFactory = {
                 parentNode.removeStatus({ type: 'request-pending', id: uid })
                 node.removeStatus({ type: 'request-pending', id: uid })
                 node.onResponse(resp, node)
+                onAchieved(update)
             })
         },
     }),
