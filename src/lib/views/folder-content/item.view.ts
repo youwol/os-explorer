@@ -223,7 +223,7 @@ export class ItemView {
             autofocus: true,
             style: { 'z-index': 200 },
             class: 'mx-2',
-            data: this.item.name,
+            value: this.item.name,
             onclick: (ev) => ev.stopPropagation(),
             onkeydown: (ev) => {
                 if (ev.key === 'Enter') {
