@@ -363,12 +363,17 @@ export class ExplorerState {
             { name: newName },
             true,
             () => ({}),
-            { toBeSaved: save },
+            {
+                toBeSaved: save,
+                onAchieved: () => {
+                    if (node instanceof ItemNode)
+                        this.selectedItem$.next(
+                            this.groupsTree[node.groupId].getNode(node.id),
+                        )
+                },
+            },
         )
-        if (node instanceof ItemNode)
-            this.selectedItem$.next(
-                this.groupsTree[node.groupId].getNode(node.id),
-            )
+
         this.openFolder$.pipe(take(1)).subscribe((f) => {
             if (f.folder.id == node.id) {
                 this.openFolder(this.groupsTree[node.groupId].getNode(node.id))
