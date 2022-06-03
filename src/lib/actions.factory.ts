@@ -8,7 +8,7 @@ import {
     raiseHTTPErrors,
 } from '@youwol/http-clients'
 import * as cdnClient from '@youwol/cdn-client'
-
+import * as fluxView from '@youwol/flux-view'
 import {
     AnyFolderNode,
     BrowserNode,
@@ -31,6 +31,7 @@ import {
     openingApps$,
     FavoritesFacade,
 } from '@youwol/os-core'
+import { VirtualDOM } from '@youwol/flux-view'
 
 export type Section =
     | 'Modify'
@@ -44,9 +45,9 @@ export type Section =
 
 export interface Action {
     sourceEventNode: BrowserNode
-    icon: string
+    icon: VirtualDOM
     name: string
-    authorized: boolean
+    enabled: () => boolean | Promise<boolean>
     exe: () => void | Promise<void>
     applicable: () => boolean | Promise<boolean>
     section: Section
@@ -124,10 +125,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-pen',
+        icon: { class: 'fas fa-pen' },
         name: 'rename',
         section: 'Modify',
-        authorized: hasItemModifyPermission(node, permissions),
+        enabled: () => hasItemModifyPermission(node, permissions),
         applicable: () => {
             return node instanceof ItemNode
         },
@@ -141,10 +142,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-pen',
+        icon: { class: 'fas fa-pen' },
         name: 'rename',
         section: 'Modify',
-        authorized: hasGroupModifyPermissions(permissions),
+        enabled: () => hasGroupModifyPermissions(permissions),
         applicable: () => {
             return node instanceof FolderNode && node.kind == 'regular'
         },
@@ -158,10 +159,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-folder',
+        icon: { class: 'fas fa-folder' },
         name: 'new folder',
         section: 'New',
-        authorized: hasGroupModifyPermissions(permissions),
+        enabled: () => hasGroupModifyPermissions(permissions),
         applicable: () => {
             return instanceOfStandardFolder(node) || node instanceof DriveNode
         },
@@ -171,10 +172,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     download: (state: ExplorerState, node: BrowserNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-download',
+        icon: { class: 'fas fa-download' },
         name: 'download file',
         section: 'IO',
-        authorized: true,
+        enabled: () => true,
         applicable: () => node instanceof ItemNode && node.kind == 'data',
         exe: () => {
             const nodeData = node as ItemNode
@@ -190,10 +191,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     upload: (state: ExplorerState, node: BrowserNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-upload',
+        icon: { class: 'fas fa-upload' },
         name: 'upload asset',
         section: 'IO',
-        authorized: true,
+        enabled: () => true,
         applicable: () => {
             return (
                 isLocalYouwol() &&
@@ -212,10 +213,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-trash',
+        icon: { class: 'fas fa-trash' },
         name: 'delete',
         section: 'Modify',
-        authorized: hasGroupModifyPermissions(permissions),
+        enabled: () => hasGroupModifyPermissions(permissions),
         applicable: () => {
             return node instanceof FolderNode && node.kind == 'regular'
         },
@@ -229,10 +230,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-trash',
+        icon: { class: 'fas fa-trash' },
         name: 'delete drive',
         section: 'Modify',
-        authorized: hasGroupModifyPermissions(permissions),
+        enabled: () => hasGroupModifyPermissions(permissions),
         applicable: () => {
             return node instanceof DriveNode
         },
@@ -246,10 +247,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-times',
+        icon: { class: 'fas fa-times' },
         name: 'clear trash',
         section: 'Modify',
-        authorized: hasGroupModifyPermissions(permissions),
+        enabled: () => hasGroupModifyPermissions(permissions),
         applicable: () => node instanceof FolderNode && node.kind == 'trash',
         exe: () => {
             state.purgeDrive(node as TrashNode)
@@ -261,10 +262,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-paste',
+        icon: { class: 'fas fa-paste' },
         name: 'paste',
         section: 'Move',
-        authorized: hasGroupModifyPermissions(permissions),
+        enabled: () => hasGroupModifyPermissions(permissions),
         applicable: () => {
             return instanceOfStandardFolder(node) && state.itemCut != undefined
         },
@@ -278,10 +279,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-cut',
+        icon: { class: 'fas fa-cut' },
         name: 'cut',
         section: 'Move',
-        authorized: hasItemModifyPermission(node, permissions),
+        enabled: () => hasItemModifyPermission(node, permissions),
         applicable: () => {
             if (node instanceof ItemNode) {
                 return !node.borrowed
@@ -298,10 +299,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-link',
+        icon: { class: 'fas fa-link' },
         name: 'borrow item',
         section: 'Move',
-        authorized: hasItemSharePermission(node, permissions),
+        enabled: () => hasItemSharePermission(node, permissions),
         applicable: () => node instanceof ItemNode,
         exe: () => {
             state.borrowItem(node as ItemNode)
@@ -313,10 +314,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
         permissions: OverallPermissions,
     ) => ({
         sourceEventNode: node,
-        icon: 'fas fa-trash',
+        icon: { class: 'fas fa-trash' },
         name: 'delete',
         section: 'Modify',
-        authorized: hasItemModifyPermission(node, permissions),
+        enabled: () => hasItemModifyPermission(node, permissions),
         applicable: () => {
             return node instanceof ItemNode
         },
@@ -326,10 +327,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     refresh: (state: ExplorerState, node: BrowserNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-sync-alt',
+        icon: { class: 'fas fa-sync-alt' },
         name: 'refresh',
         section: 'Disposition',
-        authorized: true,
+        enabled: () => true,
         applicable: () => node instanceof FolderNode,
         exe: () => {
             state.refresh(node as AnyFolderNode)
@@ -337,10 +338,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     copyFileId: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-clipboard',
+        icon: { class: 'fas fa-clipboard' },
         name: "copy file's id",
         section: 'Info',
-        authorized: true,
+        enabled: () => true,
         applicable: () => node instanceof ItemNode && node.kind == 'data',
         exe: () => {
             navigator.clipboard.writeText(node.rawId).then()
@@ -348,10 +349,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     copyExplorerId: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-clipboard',
+        icon: { class: 'fas fa-clipboard' },
         name: "copy explorer's id",
         section: 'Info',
-        authorized: true,
+        enabled: () => true,
         applicable: () => node instanceof ItemNode && node.kind == 'data',
         exe: () => {
             navigator.clipboard.writeText(node.itemId).then()
@@ -359,10 +360,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     copyAssetId: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-clipboard',
+        icon: { class: 'fas fa-clipboard' },
         name: "copy asset's id",
         section: 'Info',
-        authorized: true,
+        enabled: () => true,
         applicable: () => node instanceof ItemNode,
         exe: () => {
             navigator.clipboard.writeText(node.assetId).then()
@@ -370,10 +371,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     copyFileUrl: (state: ExplorerState, node: ItemNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-clipboard',
+        icon: { class: 'fas fa-clipboard' },
         name: "copy file's url",
         section: 'Info',
-        authorized: true,
+        enabled: () => true,
         applicable: () => node instanceof ItemNode && node.kind == 'data',
         exe: () => {
             navigator.clipboard
@@ -385,10 +386,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     favoriteFolder: (state: ExplorerState, node: BrowserNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-map-pin',
+        icon: { class: 'fas fa-map-pin' },
         name: 'add to favorites',
         section: 'Disposition',
-        authorized: true,
+        enabled: () => true,
         applicable: () => {
             const favorites = FavoritesFacade.getFolders$().getValue()
             return (
@@ -402,10 +403,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     unFavoriteFolder: (state: ExplorerState, node: BrowserNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-unlink',
+        icon: { class: 'fas fa-unlink' },
         name: 'un-favorite',
         section: 'Disposition',
-        authorized: true,
+        enabled: () => true,
         applicable: () => {
             const favorites = FavoritesFacade.getFolders$().getValue()
             return (
@@ -419,10 +420,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     favoriteDesktopItem: (state: ExplorerState, node: BrowserNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-map-pin',
+        icon: { class: 'fas fa-map-pin' },
         name: 'add to desktop',
         section: 'Disposition',
-        authorized: true,
+        enabled: () => true,
         applicable: () => {
             const favorites = FavoritesFacade.getItems$().getValue()
             return (
@@ -436,10 +437,10 @@ export const GENERIC_ACTIONS: { [k: string]: ActionConstructor } = {
     }),
     unFavoriteDesktopItem: (state: ExplorerState, node: BrowserNode) => ({
         sourceEventNode: node,
-        icon: 'fas fa-unlink',
+        icon: { class: 'fas fa-unlink' },
         name: 'remove from desktop',
         section: 'Disposition',
-        authorized: true,
+        enabled: () => true,
         applicable: () => {
             const favorites = FavoritesFacade.getItems$().getValue()
             return (
@@ -496,10 +497,12 @@ export function getActions$(
                     explorer: state,
                     cdnClient,
                     assetsGtwClient: new AssetsGateway.Client(),
+                    fluxView,
                 })
                 .map((action) => {
                     return {
                         ...action,
+                        enabled: () => true,
                         sourceEventNode: node,
                         section: 'CustomActions',
                     }
@@ -507,12 +510,12 @@ export function getActions$(
             const openWithActions: Action[] = openingApps.map(
                 ({ appInfo, parametrization }) => ({
                     sourceEventNode: node,
-                    icon: 'fas fa-folder-open',
+                    icon: { class: 'fas fa-folder-open' },
                     name: `${appInfo.displayName} ${
                         parametrization.name || ''
                     }`,
                     section: 'Open',
-                    authorized: true,
+                    enabled: () => true,
                     applicable: () => {
                         return evaluateMatch(node as ItemNode, parametrization)
                     },
