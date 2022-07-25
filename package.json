@@ -81,7 +81,8 @@
             "@youwol/fv-tabs": "^0.1.2",
             "@youwol/fv-tree": "^0.1.4",
             "@youwol/fv-input": "^0.1.0",
-            "@youwol/os-core": "^0.0.1"
+            "@youwol/os-core": "^0.0.1",
+            "lodash": "^4.17.15"
         }
     },
     "prettier": {
