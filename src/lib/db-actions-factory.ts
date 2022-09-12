@@ -23,9 +23,8 @@ function isToProcess({ update, targetCmd }) {
 }
 
 function onAchieved(update: ImmutableTree.Updates<BrowserNode>) {
-    update.command.metadata &&
-        update.command.metadata.onAchieved &&
-        update.command.metadata.onAchieved()
+    const metadata = update.command.metadata as { onAchieved: () => void }
+    metadata && metadata.onAchieved && metadata.onAchieved()
 }
 
 function onRenamed(
