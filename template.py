@@ -20,14 +20,14 @@ template = Template(
     dependencies=Dependencies(
         runTime=RunTimeDeps(
             load={
-                "@youwol/cdn-client": "^1.0.1",
-                "@youwol/http-clients": "^1.0.0",
-                "@youwol/flux-view": "^1.0.0",
-                "@youwol/fv-tree": "^0.2.0",
-                "@youwol/os-core": "^0.1.0",
-                "@youwol/fv-context-menu": "^0.1.0",
-                "@youwol/fv-input": "^0.2.0",
-                "@youwol/fv-tabs": "^0.2.0",
+                "@youwol/cdn-client": "^1.0.2",
+                "@youwol/http-clients": "^1.0.2",
+                "@youwol/flux-view": "^1.0.3",
+                "@youwol/fv-tree": "^0.2.3",
+                "@youwol/os-core": "^0.1.1",
+                "@youwol/fv-context-menu": "^0.1.1",
+                "@youwol/fv-input": "^0.2.1",
+                "@youwol/fv-tabs": "^0.2.1",
                 "lodash": "^4.17.15",
                 "rxjs": "^6.5.5",
                 "uuid": "^8.3.2"
