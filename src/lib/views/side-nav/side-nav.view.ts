@@ -49,7 +49,7 @@ export class SideNavState extends DockableTabs.State {
         })
         Object.assign(this, params)
 
-        let groupTabsCached = {}
+        const groupTabsCached = {}
     }
 }
 

@@ -100,8 +100,9 @@ export class ItemView {
     }
 
     public readonly ondblclick = (ev: PointerEvent) => {
-        if (this.item instanceof ItemNode)
+        if (this.item instanceof ItemNode) {
             tryOpenWithDefault$(this.item).subscribe()
+        }
         this.state.selectItem(this.item)
         ev.stopPropagation()
     }
