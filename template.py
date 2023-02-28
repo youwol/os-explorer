@@ -2,14 +2,27 @@ import shutil
 from pathlib import Path
 
 from youwol.pipelines.pipeline_typescript_weback_npm import Template, PackageType, Dependencies, \
-    RunTimeDeps, generate_template
+    RunTimeDeps, generate_template, Bundles, MainModule
 from youwol_utils import parse_json
 
 folder_path = Path(__file__).parent
 
 pkg_json = parse_json(folder_path / 'package.json')
 
-
+load_dependencies = {
+    "@youwol/cdn-client": "^1.0.10",
+    "@youwol/http-clients": "^2.0.5",
+    "@youwol/http-primitives": "^0.1.2",
+    "@youwol/flux-view": "^1.1.0",
+    "@youwol/fv-tree": "^0.2.3",
+    "@youwol/os-core": "^0.1.6",
+    "@youwol/fv-context-menu": "^0.1.1",
+    "@youwol/fv-input": "^0.2.1",
+    "@youwol/fv-tabs": "^0.2.1",
+    "lodash": "^4.17.15",
+    "rxjs": "^6.5.5",
+    "uuid": "^8.3.2"
+}
 template = Template(
     path=folder_path,
     type=PackageType.Library,
@@ -19,21 +32,15 @@ template = Template(
     author=pkg_json['author'],
     dependencies=Dependencies(
         runTime=RunTimeDeps(
-            load={
-                "@youwol/cdn-client": "^1.0.2",
-                "@youwol/http-clients": "^1.0.2",
-                "@youwol/flux-view": "^1.0.3",
-                "@youwol/fv-tree": "^0.2.3",
-                "@youwol/os-core": "^0.1.1",
-                "@youwol/fv-context-menu": "^0.1.1",
-                "@youwol/fv-input": "^0.2.1",
-                "@youwol/fv-tabs": "^0.2.1",
-                "lodash": "^4.17.15",
-                "rxjs": "^6.5.5",
-                "uuid": "^8.3.2"
-            }
+            externals=load_dependencies
         ),
         devTime={}
+    ),
+    bundles=Bundles(
+        mainModule=MainModule(
+            entryFile="./index.ts",
+            loadDependencies=list(load_dependencies.keys())
+        )
     ),
     userGuide=True
 )

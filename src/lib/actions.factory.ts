@@ -5,8 +5,8 @@ import {
     AssetsGateway,
     AssetsBackend,
     AssetsGateway as Gtw,
-    raiseHTTPErrors,
 } from '@youwol/http-clients'
+import { raiseHTTPErrors } from '@youwol/http-primitives'
 import * as cdnClient from '@youwol/cdn-client'
 import * as fluxView from '@youwol/flux-view'
 import {
@@ -99,7 +99,9 @@ function hasItemModifyPermission(
     node: BrowserNode,
     permissions: OverallPermissions,
 ) {
-    if (!permissions.item) return false
+    if (!permissions.item) {
+        return false
+    }
 
     if (!permissions.item.write || !permissions.group.write) {
         return false
@@ -465,8 +467,9 @@ export function getActions$(
         return of([])
     } // restore at some point
 
-    if (!(node instanceof ItemNode) && !(node instanceof FolderNode))
+    if (!(node instanceof ItemNode) && !(node instanceof FolderNode)) {
         return of([])
+    }
 
     const permissions$ =
         node instanceof ItemNode

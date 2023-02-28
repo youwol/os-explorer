@@ -1,11 +1,12 @@
 
 const runTimeDependencies = {
-    "load": {
-        "@youwol/cdn-client": "^1.0.2",
-        "@youwol/http-clients": "^1.0.2",
-        "@youwol/flux-view": "^1.0.3",
+    "externals": {
+        "@youwol/cdn-client": "^1.0.10",
+        "@youwol/http-clients": "^2.0.5",
+        "@youwol/http-primitives": "^0.1.2",
+        "@youwol/flux-view": "^1.1.0",
         "@youwol/fv-tree": "^0.2.3",
-        "@youwol/os-core": "^0.1.1",
+        "@youwol/os-core": "^0.1.6",
         "@youwol/fv-context-menu": "^0.1.1",
         "@youwol/fv-input": "^0.2.1",
         "@youwol/fv-tabs": "^0.2.1",
@@ -13,8 +14,7 @@ const runTimeDependencies = {
         "rxjs": "^6.5.5",
         "uuid": "^8.3.2"
     },
-    "differed": {},
-    "includedInBundle": []
+    "includedInBundle": {}
 }
 const externals = {
     "@youwol/cdn-client": {
@@ -25,7 +25,12 @@ const externals = {
     "@youwol/http-clients": {
         "commonjs": "@youwol/http-clients",
         "commonjs2": "@youwol/http-clients",
-        "root": "@youwol/http-clients_APIv1"
+        "root": "@youwol/http-clients_APIv2"
+    },
+    "@youwol/http-primitives": {
+        "commonjs": "@youwol/http-primitives",
+        "commonjs2": "@youwol/http-primitives",
+        "root": "@youwol/http-primitives_APIv01"
     },
     "@youwol/flux-view": {
         "commonjs": "@youwol/flux-view",
@@ -87,8 +92,12 @@ const exportedSymbols = {
         "exportedSymbol": "@youwol/cdn-client"
     },
     "@youwol/http-clients": {
-        "apiKey": "1",
+        "apiKey": "2",
         "exportedSymbol": "@youwol/http-clients"
+    },
+    "@youwol/http-primitives": {
+        "apiKey": "01",
+        "exportedSymbol": "@youwol/http-primitives"
     },
     "@youwol/flux-view": {
         "apiKey": "1",
@@ -127,10 +136,35 @@ const exportedSymbols = {
         "exportedSymbol": "uuid"
     }
 }
+
+const mainEntry : {entryFile: string,loadDependencies:string[]} = {
+    "entryFile": "./index.ts",
+    "loadDependencies": [
+        "@youwol/cdn-client",
+        "@youwol/http-clients",
+        "@youwol/http-primitives",
+        "@youwol/flux-view",
+        "@youwol/fv-tree",
+        "@youwol/os-core",
+        "@youwol/fv-context-menu",
+        "@youwol/fv-input",
+        "@youwol/fv-tabs",
+        "lodash",
+        "rxjs",
+        "uuid"
+    ]
+}
+
+const secondaryEntries : {[k:string]:{entryFile: string, name: string, loadDependencies:string[]}}= {}
+
+const entries = {
+     '@youwol/os-explorer': './index.ts',
+    ...Object.values(secondaryEntries).reduce( (acc,e) => ({...acc, [`@youwol/os-explorer/${e.name}`]:e.entryFile}), {})
+}
 export const setup = {
     name:'@youwol/os-explorer',
         assetId:'QHlvdXdvbC9vcy1leHBsb3Jlcg==',
-    version:'0.1.1',
+    version:'0.1.2',
     shortDescription:"Explorer & related components of YouWol's Operating System.",
     developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/os-explorer',
     npmPackage:'https://www.npmjs.com/package/@youwol/os-explorer',
@@ -140,7 +174,62 @@ export const setup = {
     runTimeDependencies,
     externals,
     exportedSymbols,
+    entries,
+    secondaryEntries,
     getDependencySymbolExported: (module:string) => {
         return `${exportedSymbols[module].exportedSymbol}_APIv${exportedSymbols[module].apiKey}`
+    },
+
+    installMainModule: ({cdnClient, installParameters}:{
+        cdnClient:{install:(unknown) => Promise<Window>},
+        installParameters?
+    }) => {
+        const parameters = installParameters || {}
+        const scripts = parameters.scripts || []
+        const modules = [
+            ...(parameters.modules || []),
+            ...mainEntry.loadDependencies.map( d => `${d}#${runTimeDependencies.externals[d]}`)
+        ]
+        return cdnClient.install({
+            ...parameters,
+            modules,
+            scripts,
+        }).then(() => {
+            return window[`@youwol/os-explorer_APIv01`]
+        })
+    },
+    installAuxiliaryModule: ({name, cdnClient, installParameters}:{
+        name: string,
+        cdnClient:{install:(unknown) => Promise<Window>},
+        installParameters?
+    }) => {
+        const entry = secondaryEntries[name]
+        if(!entry){
+            throw Error(`Can not find the secondary entry '${name}'. Referenced in template.py?`)
+        }
+        const parameters = installParameters || {}
+        const scripts = [
+            ...(parameters.scripts || []),
+            `@youwol/os-explorer#0.1.2~dist/@youwol/os-explorer/${entry.name}.js`
+        ]
+        const modules = [
+            ...(parameters.modules || []),
+            ...entry.loadDependencies.map( d => `${d}#${runTimeDependencies.externals[d]}`)
+        ]
+        return cdnClient.install({
+            ...parameters,
+            modules,
+            scripts,
+        }).then(() => {
+            return window[`@youwol/os-explorer/${entry.name}_APIv01`]
+        })
+    },
+    getCdnDependencies(name?: string){
+        if(name && !secondaryEntries[name]){
+            throw Error(`Can not find the secondary entry '${name}'. Referenced in template.py?`)
+        }
+        const deps = name ? secondaryEntries[name].loadDependencies : mainEntry.loadDependencies
+
+        return deps.map( d => `${d}#${runTimeDependencies.externals[d]}`)
     }
 }
