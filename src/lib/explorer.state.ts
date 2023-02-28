@@ -1,10 +1,7 @@
 import { ImmutableTree } from '@youwol/fv-tree'
 
-import {
-    raiseHTTPErrors,
-    ExplorerBackend,
-    RequestEvent,
-} from '@youwol/http-clients'
+import { ExplorerBackend } from '@youwol/http-clients'
+import { raiseHTTPErrors, RequestEvent } from '@youwol/http-primitives'
 import {
     BehaviorSubject,
     combineLatest,
@@ -303,7 +300,7 @@ export class ExplorerState {
         tree.addChild(parentNode.id, childFolder)
     }
 
-    newAsset<T>({
+    newAsset<_T>({
         parentNode,
         response$,
         progress$,
@@ -366,10 +363,11 @@ export class ExplorerState {
             {
                 toBeSaved: save,
                 onAchieved: () => {
-                    if (node instanceof ItemNode)
+                    if (node instanceof ItemNode) {
                         this.selectedItem$.next(
                             this.groupsTree[node.groupId].getNode(node.id),
                         )
+                    }
                 },
             },
         )
@@ -472,7 +470,7 @@ export class ExplorerState {
         this.itemCut = undefined
     }
 
-    refresh(folder: AnyFolderNode, openFolder: boolean = true) {
+    refresh(folder: AnyFolderNode, openFolder = true) {
         const tree = this.groupsTree[folder.groupId]
         const newFolder = instanceOfTrashFolder(folder)
             ? new FolderNode({
