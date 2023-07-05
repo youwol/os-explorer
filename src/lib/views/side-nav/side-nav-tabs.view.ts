@@ -55,14 +55,16 @@ export class MySpaceTab extends SideNavTab {
                             return params.state.defaultUserDrive$
                         }),
                         take(1),
+                        mergeMap((defaultUserDrive) => {
+                            return params.state.selectGroup$(
+                                defaultUserDrive.groupId,
+                            )
+                        }),
                     ),
-                    (defaultUserDrive) => {
+                    (treeGroup) => {
                         return new GroupView({
                             explorerState: params.state,
-                            treeGroup:
-                                params.state.groupsTree[
-                                    defaultUserDrive.groupId
-                                ],
+                            treeGroup,
                         })
                     },
                 )
