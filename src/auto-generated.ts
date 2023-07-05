@@ -164,9 +164,9 @@ const entries = {
 export const setup = {
     name:'@youwol/os-explorer',
         assetId:'QHlvdXdvbC9vcy1leHBsb3Jlcg==',
-    version:'0.1.2',
+    version:'0.1.3-wip',
     shortDescription:"Explorer & related components of YouWol's Operating System.",
-    developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/os-explorer',
+    developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/os-explorer&tab=doc',
     npmPackage:'https://www.npmjs.com/package/@youwol/os-explorer',
     sourceGithub:'https://github.com/youwol/os-explorer',
     userGuide:'https://l.youwol.com/doc/@youwol/os-explorer',
@@ -181,7 +181,7 @@ export const setup = {
     },
 
     installMainModule: ({cdnClient, installParameters}:{
-        cdnClient:{install:(unknown) => Promise<Window>},
+        cdnClient:{install:(unknown) => Promise<WindowOrWorkerGlobalScope>},
         installParameters?
     }) => {
         const parameters = installParameters || {}
@@ -200,7 +200,7 @@ export const setup = {
     },
     installAuxiliaryModule: ({name, cdnClient, installParameters}:{
         name: string,
-        cdnClient:{install:(unknown) => Promise<Window>},
+        cdnClient:{install:(unknown) => Promise<WindowOrWorkerGlobalScope>},
         installParameters?
     }) => {
         const entry = secondaryEntries[name]
@@ -210,7 +210,7 @@ export const setup = {
         const parameters = installParameters || {}
         const scripts = [
             ...(parameters.scripts || []),
-            `@youwol/os-explorer#0.1.2~dist/@youwol/os-explorer/${entry.name}.js`
+            `@youwol/os-explorer#0.1.3-wip~dist/@youwol/os-explorer/${entry.name}.js`
         ]
         const modules = [
             ...(parameters.modules || []),
