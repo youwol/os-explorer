@@ -247,7 +247,7 @@ export class GroupsTabView implements VirtualDOM {
         userInfo: AssetsGateway.UserInfoResponse
     }) {
         Object.assign(this, params)
-        let sortGroup = (a, b) => (a.path.length < b.path.length ? -1 : 1)
+        const sortGroup = (a, b) => (a.path.length < b.path.length ? -1 : 1)
 
         const displayedGroups = this.userInfo.groups
             .filter((g) => g.path != 'private')
@@ -263,10 +263,12 @@ export class GroupsTabView implements VirtualDOM {
             {
                 class: 'd-flex align-items-center',
                 children: [
+                    // 'never' is used because of a flaw in constructor declaration of `Select.View`:
+                    // the `...rest` parameters is not typed in the constructor.
                     new Select.View({
                         state: selectState,
                         class: 'w-100',
-                    } as any),
+                    } as never),
                     child$(
                         selectState.selection$.pipe(
                             map((s: GroupSelectItemData) => s.group),
