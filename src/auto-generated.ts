@@ -164,7 +164,7 @@ const entries = {
 export const setup = {
     name:'@youwol/os-explorer',
         assetId:'QHlvdXdvbC9vcy1leHBsb3Jlcg==',
-    version:'0.1.3-wip',
+    version:'0.1.3',
     shortDescription:"Explorer & related components of YouWol's Operating System.",
     developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/os-explorer&tab=doc',
     npmPackage:'https://www.npmjs.com/package/@youwol/os-explorer',
@@ -210,7 +210,7 @@ export const setup = {
         const parameters = installParameters || {}
         const scripts = [
             ...(parameters.scripts || []),
-            `@youwol/os-explorer#0.1.3-wip~dist/@youwol/os-explorer/${entry.name}.js`
+            `@youwol/os-explorer#0.1.3~dist/@youwol/os-explorer/${entry.name}.js`
         ]
         const modules = [
             ...(parameters.modules || []),
