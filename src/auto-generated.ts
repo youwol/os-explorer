@@ -1,12 +1,12 @@
 
 const runTimeDependencies = {
     "externals": {
-        "@youwol/cdn-client": "^1.0.10",
+        "@youwol/cdn-client": "^2.1.0",
         "@youwol/http-clients": "^2.0.5",
         "@youwol/http-primitives": "^0.1.2",
         "@youwol/flux-view": "^1.1.0",
         "@youwol/fv-tree": "^0.2.3",
-        "@youwol/os-core": "^0.1.6",
+        "@youwol/os-core": "^0.1.13",
         "@youwol/fv-context-menu": "^0.1.1",
         "@youwol/fv-input": "^0.2.1",
         "@youwol/fv-tabs": "^0.2.1",
@@ -20,7 +20,7 @@ const externals = {
     "@youwol/cdn-client": {
         "commonjs": "@youwol/cdn-client",
         "commonjs2": "@youwol/cdn-client",
-        "root": "@youwol/cdn-client_APIv1"
+        "root": "@youwol/cdn-client_APIv2"
     },
     "@youwol/http-clients": {
         "commonjs": "@youwol/http-clients",
@@ -88,7 +88,7 @@ const externals = {
 }
 const exportedSymbols = {
     "@youwol/cdn-client": {
-        "apiKey": "1",
+        "apiKey": "2",
         "exportedSymbol": "@youwol/cdn-client"
     },
     "@youwol/http-clients": {
@@ -164,7 +164,7 @@ const entries = {
 export const setup = {
     name:'@youwol/os-explorer',
         assetId:'QHlvdXdvbC9vcy1leHBsb3Jlcg==',
-    version:'0.1.3',
+    version:'0.1.4-wip',
     shortDescription:"Explorer & related components of YouWol's Operating System.",
     developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/os-explorer&tab=doc',
     npmPackage:'https://www.npmjs.com/package/@youwol/os-explorer',
@@ -210,7 +210,7 @@ export const setup = {
         const parameters = installParameters || {}
         const scripts = [
             ...(parameters.scripts || []),
-            `@youwol/os-explorer#0.1.3~dist/@youwol/os-explorer/${entry.name}.js`
+            `@youwol/os-explorer#0.1.4-wip~dist/@youwol/os-explorer/${entry.name}.js`
         ]
         const modules = [
             ...(parameters.modules || []),
