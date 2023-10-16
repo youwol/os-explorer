@@ -17,12 +17,12 @@ folder_path = Path(__file__).parent
 pkg_json = parse_json(folder_path / "package.json")
 
 load_dependencies = {
-    "@youwol/cdn-client": "^1.0.10",
+    "@youwol/cdn-client": "^2.1.0",
     "@youwol/http-clients": "^2.0.5",
     "@youwol/http-primitives": "^0.1.2",
     "@youwol/flux-view": "^1.1.0",
     "@youwol/fv-tree": "^0.2.3",
-    "@youwol/os-core": "^0.1.6",
+    "@youwol/os-core": "^0.1.13",
     "@youwol/fv-context-menu": "^0.1.1",
     "@youwol/fv-input": "^0.2.1",
     "@youwol/fv-tabs": "^0.2.1",
