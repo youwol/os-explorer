@@ -173,6 +173,13 @@ export class ItemView {
                             appData.appInfo.graphics.fileIcon
                             ? appData.appInfo.graphics.fileIcon
                             : { class: `mr-1 fas fa-file` }
+                            ? {
+                                  style: {
+                                      height: '25px',
+                                      width: '25px',
+                                  },
+                                  children: [appData.appInfo.graphics.fileIcon],
+                              }
                     }),
                     child$(this.item.status$, (statusList) =>
                         statusList.find((s) => s.type == 'renaming')
