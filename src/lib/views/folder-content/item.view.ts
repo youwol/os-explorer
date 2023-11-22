@@ -171,8 +171,6 @@ export class ItemView {
                         return appData &&
                             appData.appInfo.graphics &&
                             appData.appInfo.graphics.fileIcon
-                            ? appData.appInfo.graphics.fileIcon
-                            : { class: `mr-1 fas fa-file` }
                             ? {
                                   style: {
                                       height: '25px',
@@ -180,6 +178,7 @@ export class ItemView {
                                   },
                                   children: [appData.appInfo.graphics.fileIcon],
                               }
+                            : new UndefinedIconFileView()
                     }),
                     child$(this.item.status$, (statusList) =>
                         statusList.find((s) => s.type == 'renaming')
@@ -239,5 +238,31 @@ export class ItemView {
                 }
             },
         }
+    }
+}
+
+export class UndefinedIconFileView implements VirtualDOM {
+    public readonly style = {
+        height: '25px',
+        width: '25px',
+    }
+    public readonly children: VirtualDOM[]
+
+    constructor() {
+        this.children = [
+            {
+                style: {
+                    width: '100%',
+                    height: '100%',
+                    backgroundImage:
+                        "url('/api/assets-gateway/raw/package/QHlvdXdvbC9vcy1leHBsb3Jlcg==/0.1.4/assets/undefined_icon_file.svg')",
+                    backgroundSize: 'contain',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center center',
+                    filter: 'drop-shadow(rgb(0, 0, 0) 1px 3px 5px)',
+                    borderRadius: '15%',
+                },
+            },
+        ]
     }
 }
