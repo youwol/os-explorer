@@ -107,7 +107,7 @@ export class ContextMenuInnerView implements VirtualDOM {
                                 new ContextSplitterView(),
                                 new ContextSectionView({
                                     section,
-                                    actions: groupActions as any,
+                                    actions: groupActions as Action[],
                                 }),
                             ]
                         })
