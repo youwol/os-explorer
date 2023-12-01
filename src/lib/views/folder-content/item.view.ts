@@ -19,6 +19,7 @@ import {
     defaultOpeningApp$,
 } from '@youwol/os-core'
 import { AssetsGateway, ExplorerBackend } from '@youwol/http-clients'
+import { setup } from '../../../auto-generated'
 
 export class ProgressItemView {
     static ClassSelector = 'progress-item-view'
@@ -254,8 +255,7 @@ export class UndefinedIconFileView implements VirtualDOM {
                 style: {
                     width: '100%',
                     height: '100%',
-                    backgroundImage:
-                        "url('/api/assets-gateway/raw/package/QHlvdXdvbC9vcy1leHBsb3Jlcg==/0.1.4/assets/undefined_icon_file.svg')",
+                    backgroundImage: `url('/api/assets-gateway/cdn-backend/resources/${setup.assetId}/${setup.version}/assets/undefined_icon_file.svg')`,
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center center',
