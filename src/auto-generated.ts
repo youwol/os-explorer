@@ -2,14 +2,14 @@
 const runTimeDependencies = {
     "externals": {
         "@youwol/cdn-client": "^2.1.0",
-        "@youwol/http-clients": "^2.0.5",
-        "@youwol/http-primitives": "^0.1.2",
         "@youwol/flux-view": "^1.1.0",
-        "@youwol/fv-tree": "^0.2.3",
-        "@youwol/os-core": "^0.1.13",
         "@youwol/fv-context-menu": "^0.1.1",
         "@youwol/fv-input": "^0.2.1",
         "@youwol/fv-tabs": "^0.2.1",
+        "@youwol/fv-tree": "^0.2.3",
+        "@youwol/http-clients": "^2.0.5",
+        "@youwol/http-primitives": "^0.1.2",
+        "@youwol/os-core": "^0.1.13",
         "lodash": "^4.17.15",
         "rxjs": "^6.5.5",
         "uuid": "^8.3.2"
@@ -22,30 +22,10 @@ const externals = {
         "commonjs2": "@youwol/cdn-client",
         "root": "@youwol/cdn-client_APIv2"
     },
-    "@youwol/http-clients": {
-        "commonjs": "@youwol/http-clients",
-        "commonjs2": "@youwol/http-clients",
-        "root": "@youwol/http-clients_APIv2"
-    },
-    "@youwol/http-primitives": {
-        "commonjs": "@youwol/http-primitives",
-        "commonjs2": "@youwol/http-primitives",
-        "root": "@youwol/http-primitives_APIv01"
-    },
     "@youwol/flux-view": {
         "commonjs": "@youwol/flux-view",
         "commonjs2": "@youwol/flux-view",
         "root": "@youwol/flux-view_APIv1"
-    },
-    "@youwol/fv-tree": {
-        "commonjs": "@youwol/fv-tree",
-        "commonjs2": "@youwol/fv-tree",
-        "root": "@youwol/fv-tree_APIv02"
-    },
-    "@youwol/os-core": {
-        "commonjs": "@youwol/os-core",
-        "commonjs2": "@youwol/os-core",
-        "root": "@youwol/os-core_APIv01"
     },
     "@youwol/fv-context-menu": {
         "commonjs": "@youwol/fv-context-menu",
@@ -62,6 +42,26 @@ const externals = {
         "commonjs2": "@youwol/fv-tabs",
         "root": "@youwol/fv-tabs_APIv02"
     },
+    "@youwol/fv-tree": {
+        "commonjs": "@youwol/fv-tree",
+        "commonjs2": "@youwol/fv-tree",
+        "root": "@youwol/fv-tree_APIv02"
+    },
+    "@youwol/http-clients": {
+        "commonjs": "@youwol/http-clients",
+        "commonjs2": "@youwol/http-clients",
+        "root": "@youwol/http-clients_APIv2"
+    },
+    "@youwol/http-primitives": {
+        "commonjs": "@youwol/http-primitives",
+        "commonjs2": "@youwol/http-primitives",
+        "root": "@youwol/http-primitives_APIv01"
+    },
+    "@youwol/os-core": {
+        "commonjs": "@youwol/os-core",
+        "commonjs2": "@youwol/os-core",
+        "root": "@youwol/os-core_APIv01"
+    },
     "lodash": {
         "commonjs": "lodash",
         "commonjs2": "lodash",
@@ -72,11 +72,6 @@ const externals = {
         "commonjs2": "rxjs",
         "root": "rxjs_APIv6"
     },
-    "uuid": {
-        "commonjs": "uuid",
-        "commonjs2": "uuid",
-        "root": "uuid_APIv8"
-    },
     "rxjs/operators": {
         "commonjs": "rxjs/operators",
         "commonjs2": "rxjs/operators",
@@ -84,6 +79,11 @@ const externals = {
             "rxjs_APIv6",
             "operators"
         ]
+    },
+    "uuid": {
+        "commonjs": "uuid",
+        "commonjs2": "uuid",
+        "root": "uuid_APIv8"
     }
 }
 const exportedSymbols = {
@@ -91,25 +91,9 @@ const exportedSymbols = {
         "apiKey": "2",
         "exportedSymbol": "@youwol/cdn-client"
     },
-    "@youwol/http-clients": {
-        "apiKey": "2",
-        "exportedSymbol": "@youwol/http-clients"
-    },
-    "@youwol/http-primitives": {
-        "apiKey": "01",
-        "exportedSymbol": "@youwol/http-primitives"
-    },
     "@youwol/flux-view": {
         "apiKey": "1",
         "exportedSymbol": "@youwol/flux-view"
-    },
-    "@youwol/fv-tree": {
-        "apiKey": "02",
-        "exportedSymbol": "@youwol/fv-tree"
-    },
-    "@youwol/os-core": {
-        "apiKey": "01",
-        "exportedSymbol": "@youwol/os-core"
     },
     "@youwol/fv-context-menu": {
         "apiKey": "01",
@@ -122,6 +106,22 @@ const exportedSymbols = {
     "@youwol/fv-tabs": {
         "apiKey": "02",
         "exportedSymbol": "@youwol/fv-tabs"
+    },
+    "@youwol/fv-tree": {
+        "apiKey": "02",
+        "exportedSymbol": "@youwol/fv-tree"
+    },
+    "@youwol/http-clients": {
+        "apiKey": "2",
+        "exportedSymbol": "@youwol/http-clients"
+    },
+    "@youwol/http-primitives": {
+        "apiKey": "01",
+        "exportedSymbol": "@youwol/http-primitives"
+    },
+    "@youwol/os-core": {
+        "apiKey": "01",
+        "exportedSymbol": "@youwol/os-core"
     },
     "lodash": {
         "apiKey": "4",
