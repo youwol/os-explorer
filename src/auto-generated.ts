@@ -65,7 +65,7 @@ const externals = {
     "lodash": {
         "commonjs": "lodash",
         "commonjs2": "lodash",
-        "root": "__APIv4"
+        "root": "lodash_APIv4"
     },
     "rxjs": {
         "commonjs": "rxjs",
@@ -125,7 +125,7 @@ const exportedSymbols = {
     },
     "lodash": {
         "apiKey": "4",
-        "exportedSymbol": "_"
+        "exportedSymbol": "lodash"
     },
     "rxjs": {
         "apiKey": "6",
